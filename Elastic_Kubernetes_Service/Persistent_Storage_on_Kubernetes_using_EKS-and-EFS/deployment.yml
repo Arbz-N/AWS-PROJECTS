@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: efs-test-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: efs-test
+  template:
+    metadata:
+      labels:
+        app: efs-test
+    spec:
+      containers:
+      - name: efs-test
+        image: busybox
+        command: ["sleep", "3600"]
+        volumeMounts:
+        - name: efs-storage
+          mountPath: /mnt/efs
+      volumes:
+      - name: efs-storage
+        persistentVolumeClaim:
+          claimName: efs-pvc
