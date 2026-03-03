@@ -206,5 +206,16 @@ Task 3 — Test Autoscaling
 
 Cleanup
 
-
+    kubectl delete hpa simple-app-hpa
+    kubectl delete -f k8s/deployment.yaml
+    kubectl delete -f k8s/service.yaml
+    kubectl delete -f k8s/hpa.yaml
+    kubectl delete pod load-generator --ignore-not-found
     
+    eksctl delete cluster --name hpa-lab-cluster --region us-east-1
+
+
+License
+
+    This project is licensed under the MIT License.
+        
