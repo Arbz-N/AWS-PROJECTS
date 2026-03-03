@@ -144,4 +144,67 @@ Task 2 — Configure HPA
 
 Task 3 — Test Autoscaling
     
+    Step 3.1 — Start Load Generator (Terminal 1)
+    
+        kubectl run load-generator \
+      --image=busybox:1.28 \       #use alpine if busybox does not work
+      --restart=Never \
+      -it \
+      -- /bin/sh -c "while true; do wget -q -O- http://simple-app.default.svc.cluster.local; done"
+
+    Step 3.2 — Monitor Scaling (Terminal 2)
+
+    # HPA watch karo
+    kubectl get hpa simple-app-hpa -w
+    
+    # Expected progression:
+    # simple-app-hpa   0%/50%    1    ← start
+    # simple-app-hpa   85%/50%   1    ← load aaya
+    # simple-app-hpa   85%/50%   3    ← scale up
+    # simple-app-hpa   92%/50%   6    ← aur scale up
+    # simple-app-hpa   55%/50%   8    ← stabilize
+    
+    # Pods monitor karo
+    kubectl get pods -w
+    
+    # CPU usage
+    kubectl top pods
+
+    Step 3.3 — Verify Scale Down
+
+    # Load generator band karo
+    kubectl delete pod load-generator
+    
+    # Scale down watch karo (5 minute lagte hain)
+    kubectl get hpa simple-app-hpa -w
+    
+    # Expected:
+    # simple-app-hpa   5%/50%    8    ← load gaya
+    # simple-app-hpa   2%/50%    4    ← scale down
+    # simple-app-hpa   0%/50%    1    ← minimum par wapas 
+
+    Step 3.4 — Look HPA Events 
+    
+    kubectl describe hpa simple-app-hpa
+    # Expected:
+    # SuccessfulRescale  Scaled up to 3 replicas
+    # SuccessfulRescale  Scaled up to 6 replicas
+    # SuccessfulRescale  Scaled down to 1 replica
+
+     HPA Formula
+
+     desiredReplicas = ceil(currentReplicas × (currentCPU / targetCPU))
+
+    Example:
+      currentReplicas = 2
+      currentCPU      = 80%
+      targetCPU       = 50%
+    
+      desiredReplicas = ceil(2 × (80/50))
+                     = ceil(3.2)
+                     = 4 pods 
+
+Cleanup
+
+
     
