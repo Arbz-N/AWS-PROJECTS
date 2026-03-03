@@ -14,14 +14,15 @@ Key highlights:
     Full scale-up and scale-down verification
 
 Project Structure
-    Horizontal_Pod_Autoscaler_HPA_on_Amazon_EKS/
-    │
-    ├── k8s/
-    │   ├── deployment.yaml       # Nginx Deployment with CPU requests/limits
-    │   ├── service.yaml          # ClusterIP Service for internal access
-    │   └── hpa.yaml              # HorizontalPodAutoscaler (CPU based)
-    │
-    └── README.md                 # Project documentation
+
+        Horizontal_Pod_Autoscaler_HPA_on_Amazon_EKS/
+        │
+        ├── k8s/
+        │   ├── deployment.yaml       # Nginx Deployment with CPU requests/limits
+        │   ├── service.yaml          # ClusterIP Service for internal access
+        │   └── hpa.yaml              # HorizontalPodAutoscaler (CPU based)
+        │
+        └── README.md                 # Project documentation
     
 
 Architecture
