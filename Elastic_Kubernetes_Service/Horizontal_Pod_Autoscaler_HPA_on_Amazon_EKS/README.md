@@ -24,7 +24,8 @@ Project Structure
     └── README.md                 # Project documentation
     
 
-                
+Architecture
+
                     Load Generator Pod
                            │
                            │ HTTP requests (loop)
@@ -45,3 +46,102 @@ Project Structure
                       HPA Controller
                       ├──► CPU > 50% → Scale Up   ↑
                       └──► CPU < 50% → Scale Down ↓
+
+
+Prerequisites
+
+    Requirement                            Detail
+    
+    AWS Account                    EKS, EC2, IAM permissions required
+    AWS CLI                        Installed and configured
+    kubectl                        Installed on local machine
+    eksctl                         For EKS cluster management
+
+
+Task 1 — Deploy Application on EKS
+
+sudo apt-get update && sudo apt-get full-upgrade -y
+
+    Step 1.1 — Install kubectl
+
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    kubectl version --client
+
+    Step 1.2 — Install eksctl
+
+    ARCH=amd64
+    PLATFORM=$(uname -s)_$ARCH
+    curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+    curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+    tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+    sudo mv /tmp/eksctl /usr/local/bin
+    eksctl version
+
+    Step 1.3 — Install & Configure AWS CLI
+
+    sudo apt-get install zip unzip -y
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip && sudo ./aws/install
+    
+    aws configure
+    # Enter: AWS Access Key ID
+    # Enter: AWS Secret Access Key
+    # Enter: Default region (us-east-1)
+    # Enter: Output format (json)
+
+    Step 1.4 — Create EKS Cluster
+
+        eksctl create cluster \
+      --name=hpa-lab-cluster \
+      --version=1.34 \
+      --region=us-east-1 \
+      --node-type=t3.medium \
+      --nodes=2 \
+      --nodes-min=2 \
+      --nodes-max=4 \
+      --nodegroup-name=hpa-lab-nodes \
+      --managed
+
+    # Update kubeconfig
+    aws eks --region us-east-1 update-kubeconfig --name hpa-lab-cluster
+    
+    # Verify nodes
+    kubectl get nodes
+    # STATUS: Ready hona chahiye
+
+    Step 1.5 — Deploy Application & Service
+
+    kubectl apply -f k8s/deployment.yaml
+    kubectl apply -f k8s/service.yaml
+    
+    kubectl get pods
+    kubectl get svc simple-app
+
+Task 2 — Configure HPA
+
+    Step 2.1 — Install Metrics Server
+
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    # Verify (1-2 minute wait karo)
+    kubectl get pods -n kube-system | grep metrics-server
+    
+    # Test metrics
+    kubectl top nodes
+    kubectl top pods
+
+    Step 2.2 — Apply HPA
+
+    kubectl apply -f k8s/hpa.yaml
+
+    # Status check karo
+    kubectl get hpa simple-app-hpa
+    # Expected:
+    # NAME             TARGETS   MINPODS   MAXPODS   REPLICAS
+    # simple-app-hpa   0%/50%    1         10        1
+
+Task 3 — Test Autoscaling
+    
+    
