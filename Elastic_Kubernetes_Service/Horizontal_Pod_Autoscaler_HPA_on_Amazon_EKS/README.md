@@ -4,7 +4,7 @@ THis is a hands-on project that demonstrates Horizontal Pod Autoscaling (HPA) on
 It deploys a sample Nginx application, configures CPU-based autoscaling,
 and validates scale-up and scale-down behavior under real load using a load generator pod.
 
-Key highlights:
+## Key highlights:
 
     EKS cluster provisioned via eksctl with managed node groups
     Nginx deployment with proper CPU requests/limits for HPA compatibility
@@ -13,7 +13,7 @@ Key highlights:
     Load testing with busybox / alpine to trigger autoscaling
     Full scale-up and scale-down verification
 
-Project Structure
+## Project Structure
 
         Horizontal_Pod_Autoscaler_HPA_on_Amazon_EKS/
         │
@@ -25,7 +25,7 @@ Project Structure
         └── README.md                 # Project documentation
     
 
-Architecture
+## Architecture
 
                     Load Generator Pod
                            │
@@ -49,7 +49,7 @@ Architecture
                       └──► CPU < 50% → Scale Down ↓
 
 
-Prerequisites
+## Prerequisites
 
     Requirement                            Detail
     
@@ -59,9 +59,9 @@ Prerequisites
     eksctl                         For EKS cluster management
 
 
-Task 1 — Deploy Application on EKS
+### Task 1 — Deploy Application on EKS
 
-sudo apt-get update && sudo apt-get full-upgrade -y
+    sudo apt-get update && sudo apt-get full-upgrade -y
 
     Step 1.1 — Install kubectl
 
@@ -121,7 +121,7 @@ sudo apt-get update && sudo apt-get full-upgrade -y
     kubectl get pods
     kubectl get svc simple-app
 
-Task 2 — Configure HPA
+### Task 2 — Configure HPA
 
     Step 2.1 — Install Metrics Server
 
@@ -143,7 +143,7 @@ Task 2 — Configure HPA
     # NAME             TARGETS   MINPODS   MAXPODS   REPLICAS
     # simple-app-hpa   0%/50%    1         10        1
 
-Task 3 — Test Autoscaling
+### Task 3 — Test Autoscaling
     
     Step 3.1 — Start Load Generator (Terminal 1)
     
@@ -205,7 +205,7 @@ Task 3 — Test Autoscaling
                      = ceil(3.2)
                      = 4 pods 
 
-Cleanup
+### Cleanup
 
     kubectl delete hpa simple-app-hpa
     kubectl delete -f k8s/deployment.yaml
@@ -216,7 +216,7 @@ Cleanup
     eksctl delete cluster --name hpa-lab-cluster --region us-east-1
 
 
-License
+### License
 
     This project is licensed under the MIT License.
         
