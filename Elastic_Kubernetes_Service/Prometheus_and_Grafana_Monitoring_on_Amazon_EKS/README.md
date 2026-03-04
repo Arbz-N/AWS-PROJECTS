@@ -235,16 +235,16 @@ Step 1 — Install EBS CSI Driver
 
     Grafana Console:
     1. Left menu → Dashboards → Import
-   2. Enter Dashboard ID:
+    2. Enter Dashboard ID:
 
       3119  → Kubernetes Cluster Monitoring (basic)
       6417  → Kubernetes Cluster (Prometheus)
       1860  → Node Exporter Full
       8685  → Kubernetes Deployment / StatefulSet / DaemonSet
 
-   3. Click "Load"
-   4. Select data source: Prometheus
-   5. Click "Import" 
+    3. Click "Load"
+    4. Select data source: Prometheus
+    5. Click "Import" 
 
 
 Cleanup
