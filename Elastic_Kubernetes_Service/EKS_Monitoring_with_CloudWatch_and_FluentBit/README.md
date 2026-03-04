@@ -14,7 +14,7 @@
 
 ## Project Structure:
 
-    CloudWatchKube/
+    EKS Monitoring with CloudWatch + FluentBit/
     │
     ├── k8s/
     │   └── cluster-info-configmap.yaml   # ConfigMap with cluster name + region
