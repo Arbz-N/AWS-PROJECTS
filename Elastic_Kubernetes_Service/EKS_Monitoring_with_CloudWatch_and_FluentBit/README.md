@@ -1,6 +1,6 @@
 #  EKS Monitoring with CloudWatch + FluentBit
 
-    CloudWatchKube is a hands-on project that integrates an Amazon EKS cluster with AWS CloudWatch for metrics and log collection.
+    This is a hands-on project that integrates an Amazon EKS cluster with AWS CloudWatch for metrics and log collection.
     It deploys the CloudWatch Agent (metrics) and FluentBit (logs) as DaemonSets on every node, enabling Container Insights dashboards and centralized log management.
        
      Key highlights:
