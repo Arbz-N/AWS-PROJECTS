@@ -101,7 +101,7 @@ Step 1 — Install EBS CSI Driver
       --namespace kube-system \
       --cluster myekscluster \
       --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
-      --approve \
+      --approve \ 
       --role-only \
       --role-name AmazonEKS_EBS_CSI_DriverRole
 
