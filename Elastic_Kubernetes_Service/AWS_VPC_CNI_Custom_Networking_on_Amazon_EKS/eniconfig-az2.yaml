@@ -1,0 +1,8 @@
+apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: us-east-1b
+spec:
+  securityGroups:
+    - <EKS_CLUSTER_SECURITY_GROUP_ID>   # Replace with: aws eks describe-cluster --query clusterSecurityGroupId
+  subnet: <POD_SUBNET_2_ID>             # Replace with: 100.64.2.0/24 subnet ID
