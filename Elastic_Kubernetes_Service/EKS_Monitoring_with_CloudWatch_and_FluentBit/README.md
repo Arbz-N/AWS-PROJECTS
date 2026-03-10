@@ -89,7 +89,7 @@
     Step 1 — Attach CloudWatch Policy to Node IAM Role
 
 
-    # Dynamically find Node IAM Role (suffix is random per cluster)
+    # Dynamically find Node IAM Role 
     NODE_ROLE=$(aws iam list-roles \
       --query "Roles[?contains(RoleName, 'NodeInstanceRole')].RoleName" \
       --output text)
