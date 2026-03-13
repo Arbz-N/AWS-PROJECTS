@@ -12,7 +12,7 @@
     Results analyzed for FAIL checks with remediation steps
     sed substitution pattern explained — reusable in any CI/CD pipeline
 
-Project Structure
+## Project Structure:
 
     KubeBench/
     │
@@ -22,7 +22,7 @@ Project Structure
     │
     └── README.md              # Project documentation
 
-Prerequisites
+## Prerequisites:
 
     Requirement                     Detail
     
@@ -33,7 +33,7 @@ Prerequisites
     Docker                          Installed (for Method 2)
     Git                             Installed (for Method 2 clone)
 
-Architecture
+## Architecture:
 
         EKS Cluster (kube-bench-lab)
           ┌────────────────────────────────────────────────────┐
@@ -63,7 +63,7 @@ Architecture
           Method 1: public.ecr.aws/aquasecurity/kube-bench:latest
           Method 2: <ACCOUNT>.dkr.ecr.<REGION>.amazonaws.com/k8s/kube-bench:latest
 
-Setup — Variables
+## Setup — Variables:
 
     export AWS_REGION=us-east-1
     export ACCOUNT_ID=$(aws sts get-caller-identity \
@@ -73,7 +73,7 @@ Setup — Variables
     echo "Account: $ACCOUNT_ID"
     echo "Region : $AWS_REGION"
 
-Task 1 — Create EKS Cluster
+## Task 1 — Create EKS Cluster:
 
     eksctl create cluster -f cluster.yaml
     
@@ -85,7 +85,7 @@ Task 1 — Create EKS Cluster
     # ip-10-0-x-x   Ready 
     # ip-10-0-x-x   Ready 
 
-Task 2 — Method 1: Quick Scan (Official Docker Hub Image)
+## Task 2 — Method 1: Quick Scan (Official Docker Hub Image):
 
     Step 2.1 — Download Official EKS Job File
     
@@ -123,7 +123,7 @@ Task 2 — Method 1: Quick Scan (Official Docker Hub Image)
     kubectl logs $BENCH_POD > kube-bench-report.txt
     echo "Report saved "
 
-Task 3 — Method 2: ECR (Official EKS Recommended Method)
+## Task 3 — Method 2: ECR (Official EKS Recommended Method):
 
     Step 3.1 — Create ECR Repository
 
@@ -213,7 +213,7 @@ Task 3 — Method 2: ECR (Official EKS Recommended Method)
     kubectl logs $BENCH_POD > kube-bench-ecr-report.txt
     echo "Report saved "
 
-Task 4 — Analyze Results
+## Task 4 — Analyze Results:
 
     Summary
     kubectl logs $BENCH_POD | grep -E "^== Summary|checks PASS|checks FAIL|checks WARN"
@@ -225,7 +225,7 @@ Task 4 — Analyze Results
     # 0 checks INFO
     
 
-Cleanup
+## Cleanup:
     
     kubectl delete job kube-bench 2>/dev/null
     
