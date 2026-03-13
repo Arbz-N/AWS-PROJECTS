@@ -125,6 +125,98 @@ Task 2 — Method 1: Quick Scan (Official Docker Hub Image)
 
 Task 3 — Method 2: ECR (Official EKS Recommended Method)
 
+Step 3.1 — Create ECR Repository
+bashaws ecr create-repository \
+  --repository-name k8s/kube-bench \
+  --image-tag-mutability MUTABLE \
+  --region $AWS_REGION
+
+export ECR_URI=$(aws ecr describe-repositories \
+  --repository-names k8s/kube-bench \
+  --region $AWS_REGION \
+  --query 'repositories[0].repositoryUri' \
+  --output text)
+
+echo "ECR URI: $ECR_URI ✅"
+Step 3.2 — Clone kube-bench Repository
+bashgit clone https://github.com/aquasecurity/kube-bench.git
+cd kube-bench
+
+The cloned repo contains:
+
+Dockerfile — for building the image
+job-eks.yaml — EKS-specific job (use this, not job.yaml)
+cfg/eks-1.5.0/ — EKS CIS benchmark check definitions
+cfg/cis-1.8/ — Generic Kubernetes checks
+
+
+Step 3.3 — Build and Push Image
+bash# ECR login
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS \
+  --password-stdin \
+  $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+# Build — build args are REQUIRED
+# Without them: kubectl download URL is empty → 404 error
+docker build \
+  --build-arg KUBECTL_VERSION=1.27.0 \
+  --build-arg TARGETARCH=amd64 \
+  -t k8s/kube-bench .
+
+# Tag and push
+docker tag k8s/kube-bench:latest $ECR_URI:latest
+docker push $ECR_URI:latest
+
+echo "Image pushed: $ECR_URI:latest ✅"
+cd ..
+Step 3.4 — Patch job-eks.yaml with ECR Image
+bashcurl -Lo job-eks-ecr.yaml \
+  https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job-eks.yaml
+
+# Replace official image with your ECR image
+sed -i "s|image: .*|image: $ECR_URI:latest|g" job-eks-ecr.yaml
+
+# Verify
+grep "image:" job-eks-ecr.yaml
+# image: 123456789.dkr.ecr.us-east-1.amazonaws.com/k8s/kube-bench:latest ✅
+
+sed pattern explained:
+sed -i "s|image: .*|image: $ECR_URI:latest|g" job-eks-ecr.yaml
+     │   │         │                       │
+     │   │         replacement string      │
+     │   pattern: "image: " + anything     │
+     -i = edit file in place               │
+                                           g = replace all matches
+This same pattern is reusable in any CI/CD pipeline:
+bashsed -i "s|image: .*|image: $ECR_URI:$GITHUB_SHA|g" deployment.yaml
+kubectl apply -f deployment.yaml
+
+Step 3.5 — Run ECR Job
+bashkubectl delete job kube-bench 2>/dev/null
+
+kubectl apply -f job-eks-ecr.yaml
+# job.batch/kube-bench created ✅
+
+sleep 20
+
+BENCH_POD=$(kubectl get pods \
+  -l app=kube-bench \
+  -o jsonpath='{.items[0].metadata.name}')
+
+kubectl logs $BENCH_POD > kube-bench-ecr-report.txt
+echo "Report saved ✅"
+
+📊 Task 4 — Analyze Results
+Summary
+bashkubectl logs $BENCH_POD | grep -E "^== Summary|checks PASS|checks FAIL|checks WARN"
+
+# == Summary node ==
+# 15 checks PASS
+# 3 checks FAIL
+# 2 checks WARN
+# 0 checks INFO
+
 
 
 
