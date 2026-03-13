@@ -168,7 +168,7 @@ docker build \
 docker tag k8s/kube-bench:latest $ECR_URI:latest
 docker push $ECR_URI:latest
 
-echo "Image pushed: $ECR_URI:latest ✅"
+echo "Image pushed: $ECR_URI:latest "
 cd ..
 Step 3.4 — Patch job-eks.yaml with ECR Image
 bashcurl -Lo job-eks-ecr.yaml \
@@ -179,7 +179,7 @@ sed -i "s|image: .*|image: $ECR_URI:latest|g" job-eks-ecr.yaml
 
 # Verify
 grep "image:" job-eks-ecr.yaml
-# image: 123456789.dkr.ecr.us-east-1.amazonaws.com/k8s/kube-bench:latest ✅
+# image: 123456789.dkr.ecr.us-east-1.amazonaws.com/k8s/kube-bench:latest 
 
 sed pattern explained:
 sed -i "s|image: .*|image: $ECR_URI:latest|g" job-eks-ecr.yaml
@@ -196,7 +196,7 @@ Step 3.5 — Run ECR Job
 bashkubectl delete job kube-bench 2>/dev/null
 
 kubectl apply -f job-eks-ecr.yaml
-# job.batch/kube-bench created ✅
+# job.batch/kube-bench created 
 
 sleep 20
 
@@ -205,7 +205,7 @@ BENCH_POD=$(kubectl get pods \
   -o jsonpath='{.items[0].metadata.name}')
 
 kubectl logs $BENCH_POD > kube-bench-ecr-report.txt
-echo "Report saved ✅"
+echo "Report saved "
 
 📊 Task 4 — Analyze Results
 Summary
