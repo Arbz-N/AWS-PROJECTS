@@ -123,3 +123,169 @@ Task 2 — Create EFS Filesystem
         --file-system-id $EFS_ID \
         --lifecycle-policies TransitionToIA=AFTER_30_DAYS \
                             TransitionToPrimaryStorageClass=AFTER_1_ACCESS
+
+Task 3 — Create Mount Targets (Two AZs)
+
+    MT_ID_1=$(aws efs create-mount-target \
+        --file-system-id $EFS_ID \
+        --subnet-id $SUBNET_AZ1 \
+        --security-groups $EFS_SG_ID \
+        --query 'MountTargetId' --output text)
+    
+    MT_ID_2=$(aws efs create-mount-target \
+        --file-system-id $EFS_ID \
+        --subnet-id $SUBNET_AZ2 \
+        --security-groups $EFS_SG_ID \
+        --query 'MountTargetId' --output text)
+    
+    echo "Waiting 30 seconds..."
+    sleep 30
+    
+    # Verify VpcId matches EC2 VPC
+    aws efs describe-mount-targets \
+        --file-system-id $EFS_ID \
+        --query 'MountTargets[*].{ID:MountTargetId,AZ:AvailabilityZoneName,State:LifeCycleState,IP:IpAddress,VPC:VpcId}' \
+        --output table
+
+    Verify VpcId matches your EC2 instance VPC. Mismatch = NXDOMAIN error on mount.
+
+
+Task 4 — Mount on Instance 1 (Ubuntu)
+
+    # Run on EC2 Instance 1
+    export EFS_ID="fs-xxxxxxxxx"
+    export AWS_REGION="us-east-1"
+    export EFS_DNS="${EFS_ID}.efs.${AWS_REGION}.amazonaws.com"
+    
+    # Step 1: Connectivity check FIRST
+    nslookup $EFS_DNS          # DNS resolves? 
+    nc -zv $EFS_DNS 2049       # Port 2049 open? 
+    
+    # Step 2: Install nfs-common
+    sudo apt-get install -y nfs-common
+    
+    # Step 3: Mount
+    sudo mkdir -p /mnt/efs
+    sudo mount -t nfs4 -o nfsvers=4.1 $EFS_DNS:/ /mnt/efs
+    
+    # Step 4: Verify
+    df -h /mnt/efs
+    # Filesystem  Size  Used Avail Use%  Mounted on
+    # fs-xxx.efs  8.0E     0  8.0E   0%  /mnt/efs  
+    # (8.0E = unlimited — EFS auto-grows)
+    
+    # Step 5: Set ownership and test write
+    sudo chown $(whoami):$(whoami) /mnt/efs
+    sudo chmod 755 /mnt/efs
+    echo "EFS mount test - $(date)" > /mnt/efs/test.txt
+    cat /mnt/efs/test.txt  # 
+
+Add to fstab (Ubuntu Format)
+
+    # Backup first — ALWAYS
+    sudo cp /etc/fstab /etc/fstab.backup.$(date +%Y%m%d)
+    
+    # Correct Ubuntu format — use nfs4 type, NOT efs type
+    echo "${EFS_DNS}:/ /mnt/efs nfs4 nfsvers=4.1,_netdev 0 0" | sudo tee -a /etc/fstab
+    
+    # Test auto-mount
+    sudo umount /mnt/efs
+    sudo systemctl daemon-reload
+    sudo mount -a
+    df -h /mnt/efs  # 
+
+Task 5 — Write Shared Data (Instance 1)
+ 
+    mkdir -p /mnt/efs/{shared,logs,configs,uploads}
+    
+    cat << 'EOF' > /mnt/efs/configs/app.conf
+    DB_HOST=rds.us-east-1.amazonaws.com
+    DB_PORT=5432
+    APP_ENV=production
+    LOG_LEVEL=info
+    EOF
+    
+    echo "$(date) | Instance-1 | Server started" >> /mnt/efs/logs/app.log
+    echo "Hello from Instance 1! Time: $(date)"  >> /mnt/efs/shared/messages.txt
+    
+    ls -lR /mnt/efs/
+    echo "Instance 1 wrote data to EFS "
+
+Task 6 — Launch Instance 2 and Mount EFS
+
+    # Get Instance 1 details
+    AMI_ID=$(aws ec2 describe-instances \
+        --filters "Name=instance-state-name,Values=running" \
+        --query 'Reservations[0].Instances[0].ImageId' --output text)
+    
+    SUBNET_ID=$(aws ec2 describe-instances \
+        --filters "Name=instance-state-name,Values=running" \
+        --query 'Reservations[0].Instances[0].SubnetId' --output text)
+    
+    KEY_NAME=$(aws ec2 describe-instances \
+        --filters "Name=instance-state-name,Values=running" \
+        --query 'Reservations[0].Instances[0].KeyName' --output text)
+    
+    EC2_SG_ID=$(aws ec2 describe-security-groups \
+        --filters "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" \
+        --query 'SecurityGroups[0].GroupId' --output text)
+    
+    # Launch Instance 2
+    INSTANCE2_ID=$(aws ec2 run-instances \
+        --image-id $AMI_ID \
+        --instance-type t2.micro \
+        --subnet-id $SUBNET_ID \
+        --key-name $KEY_NAME \
+        --security-group-ids $EC2_SG_ID \
+        --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=EFS-Lab-Instance2}]' \
+        --query 'Instances[0].InstanceId' --output text)
+    
+    aws ec2 wait instance-running --instance-ids $INSTANCE2_ID
+    
+    INSTANCE2_IP=$(aws ec2 describe-instances \
+        --instance-ids $INSTANCE2_ID \
+        --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+    
+    echo "SSH: ssh -i ${KEY_NAME}.pem ubuntu@${INSTANCE2_IP}"
+
+    
+    Mount EFS on Instance 2
+    
+    # SSH into Instance 2, then:
+    export EFS_DNS="fs-xxxxxxxxx.efs.us-east-1.amazonaws.com"
+    
+    sudo apt-get install -y nfs-common
+    nc -zv $EFS_DNS 2049  # 
+    
+    sudo mkdir -p /mnt/efs
+    sudo mount -t nfs4 -o nfsvers=4.1 $EFS_DNS:/ /mnt/efs
+    df -h /mnt/efs  # 
+
+
+Task 7 — Real-Time Shared Data Test
+
+    # On Instance 2: Read Instance 1's data
+    cat /mnt/efs/configs/app.conf      #  Instance 1's config
+    cat /mnt/efs/shared/messages.txt   #  "Hello from Instance 1!"
+    cat /mnt/efs/logs/app.log          #  Instance 1's logs
+    
+    # On Instance 2: Write
+    echo "$(date) | Instance-2 | Started" >> /mnt/efs/logs/app.log
+    echo "Hello from Instance 2! Time: $(date)" >> /mnt/efs/shared/messages.txt
+    
+    # On Instance 1: Verify instantly
+    cat /mnt/efs/shared/messages.txt
+    # Hello from Instance 1! ...
+    # Hello from Instance 2! ...  ← appears immediately 
+
+Live Watch Test
+
+    # Terminal 1 (Instance 1):
+    watch -n 1 'cat /mnt/efs/shared/messages.txt'
+    
+    # Terminal 2 (Instance 2):
+    for i in {1..5}; do
+        echo "Live update $i: $(date)" >> /mnt/efs/shared/messages.txt
+        sleep 2
+    done
+    # Instance 1 terminal updates in real time 
