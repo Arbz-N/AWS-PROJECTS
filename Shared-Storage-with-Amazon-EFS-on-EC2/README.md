@@ -12,7 +12,7 @@
     Real-time sync demonstrated: Instance 2 writes → Instance 1 sees it immediately
     Common errors documented: NXDOMAIN, port 2049 hang, wrong fstab type
 
-Project Structure
+## Project Structure:
 
     Shared-Storage-with-Amazon-EFS-on-EC2/
     │
@@ -23,7 +23,7 @@ Project Structure
     │
     └── README.md
 
-Prerequisites:
+## Prerequisites:
 
     Requirement                 Detail
 
@@ -33,7 +33,7 @@ Prerequisites:
     SSH key pair                For launching Instance 2
 
 
-Architecture
+## Architecture:
 
         us-east-1
           ┌──────────────────────────────────────────────────────────┐
@@ -61,13 +61,13 @@ Architecture
           │  EFS Security Group: TCP 2049 from 172.31.0.0/16 only    │
           └──────────────────────────────────────────────────────────┘
 
-Export Variable First:
+## Export Variable First:
 
     export AWS_REGION="us-east-1"
     export PROJECT_TAG="EFS-Lab"
     aws sts get-caller-identity  # 
 
-Task 1 — Network + Security Group Setup
+### Task 1 — Network + Security Group Setup:
 
     # Get default VPC
     VPC_ID=$(aws ec2 describe-vpcs \
@@ -102,7 +102,7 @@ Task 1 — Network + Security Group Setup
     
     echo "EFS SG: $EFS_SG_ID"
 
-Task 2 — Create EFS Filesystem
+### Task 2 — Create EFS Filesystem:
     
     EFS_ID=$(aws efs create-file-system \
         --region $AWS_REGION \
@@ -124,7 +124,7 @@ Task 2 — Create EFS Filesystem
         --lifecycle-policies TransitionToIA=AFTER_30_DAYS \
                             TransitionToPrimaryStorageClass=AFTER_1_ACCESS
 
-Task 3 — Create Mount Targets (Two AZs)
+### Task 3 — Create Mount Targets (Two AZs):
 
     MT_ID_1=$(aws efs create-mount-target \
         --file-system-id $EFS_ID \
@@ -150,7 +150,7 @@ Task 3 — Create Mount Targets (Two AZs)
     Verify VpcId matches your EC2 instance VPC. Mismatch = NXDOMAIN error on mount.
 
 
-Task 4 — Mount on Instance 1 (Ubuntu)
+### Task 4 — Mount on Instance 1 (Ubuntu):
 
     # Run on EC2 Instance 1
     export EFS_ID="fs-xxxxxxxxx"
@@ -180,7 +180,7 @@ Task 4 — Mount on Instance 1 (Ubuntu)
     echo "EFS mount test - $(date)" > /mnt/efs/test.txt
     cat /mnt/efs/test.txt  # 
 
-Add to fstab (Ubuntu Format)
+### Add to fstab (Ubuntu Format):
 
     # Backup first — ALWAYS
     sudo cp /etc/fstab /etc/fstab.backup.$(date +%Y%m%d)
@@ -194,7 +194,7 @@ Add to fstab (Ubuntu Format)
     sudo mount -a
     df -h /mnt/efs  # 
 
-Task 5 — Write Shared Data (Instance 1)
+### Task 5 — Write Shared Data (Instance 1):
  
     mkdir -p /mnt/efs/{shared,logs,configs,uploads}
     
@@ -211,7 +211,7 @@ Task 5 — Write Shared Data (Instance 1)
     ls -lR /mnt/efs/
     echo "Instance 1 wrote data to EFS "
 
-Task 6 — Launch Instance 2 and Mount EFS
+### Task 6 — Launch Instance 2 and Mount EFS:
 
     # Get Instance 1 details
     AMI_ID=$(aws ec2 describe-instances \
@@ -262,7 +262,7 @@ Task 6 — Launch Instance 2 and Mount EFS
     df -h /mnt/efs  # 
 
 
-Task 7 — Real-Time Shared Data Test
+### Task 7 — Real-Time Shared Data Test:
 
     # On Instance 2: Read Instance 1's data
     cat /mnt/efs/configs/app.conf      #  Instance 1's config
@@ -278,7 +278,7 @@ Task 7 — Real-Time Shared Data Test
     # Hello from Instance 1! ...
     # Hello from Instance 2! ...  ← appears immediately 
 
-Live Watch Test
+### Live Watch Test:
 
     # Terminal 1 (Instance 1):
     watch -n 1 'cat /mnt/efs/shared/messages.txt'
@@ -289,3 +289,33 @@ Live Watch Test
         sleep 2
     done
     # Instance 1 terminal updates in real time 
+
+### Cleanup:
+
+    # Step 1: Unmount on both instances
+    sudo umount /mnt/efs
+    sudo sed -i '/nfs4/d' /etc/fstab
+    sudo sed -i '/efs/d' /etc/fstab
+    sudo systemctl daemon-reload
+    
+    # Step 2: Terminate Instance 2
+    aws ec2 terminate-instances --instance-ids $INSTANCE2_ID
+    
+    # Step 3: Delete mount targets
+    for MT in $(aws efs describe-mount-targets \
+        --file-system-id $EFS_ID \
+        --query 'MountTargets[*].MountTargetId' --output text); do
+        aws efs delete-mount-target --mount-target-id $MT
+    done
+    
+    # Step 4: Wait (required)
+    echo "Waiting 60 seconds..."
+    sleep 60
+    
+    # Step 5: Delete EFS
+    aws efs delete-file-system --file-system-id $EFS_ID
+    
+    # Step 6: Delete Security Group
+    aws ec2 delete-security-group --group-id $EFS_SG_ID
+    
+    echo "Cleanup complete — billing stopped"
