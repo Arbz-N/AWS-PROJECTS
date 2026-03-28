@@ -1,0 +1,24 @@
+{
+    "family": "simple-web-task",
+    "networkMode": "awsvpc",
+    "executionRoleArn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/ecsTaskExecutionRole",
+    "containerDefinitions": [
+        {
+            "name": "simple-web-app",
+            "image": "YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/simple-web-app:latest",
+            "portMappings": [
+                {
+                    "containerPort": 5000,
+                    "hostPort": 5000,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "memory": 512,
+            "cpu": 256
+        }
+    ],
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "256",
+    "memory": "512"
+}
