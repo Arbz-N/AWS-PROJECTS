@@ -1,17 +1,17 @@
 import boto3
 
-# AWS Clients
+# AWS_Projects Clients
 ec2_client = boto3.client('ec2')
 
 
-OWNER_ID = '<your-aws-account-id>'  # Replace with your AWS account ID
+OWNER_ID = '<your-aws-account-id>'  # Replace with your AWS_Projects account ID
 DRY_RUN = False  # Set to True for testing without deleting snapshots
 
-# Lambda Handler
+# Lambda-Projects Handler
 
 def lambda_handler(event, context):
     """
-    Lambda function to clean up unused EBS snapshots.
+    Lambda-Projects function to clean up unused EBS snapshots.
     Deletes snapshots if:
       1. Snapshot has no VolumeId
       2. Volume exists but is not attached
