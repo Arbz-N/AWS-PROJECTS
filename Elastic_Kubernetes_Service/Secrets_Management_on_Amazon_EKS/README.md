@@ -14,7 +14,7 @@
     Native Kubernetes Secret as volume mount (Method 3)
     Full verification of all three methods
 
-Project Structure:
+## Project Structure:
 
     Secrets_Management_on_Amazon_EKS/
     │
@@ -38,7 +38,7 @@ Project Structure:
     eksctl                        For EKS cluster management
     Helm 3.x                      For Prometheus and Grafana install
 
-Architecture:
+## Architecture:
 
     AWS Secrets Manager
       (MyApp/DatabaseCredentials)
@@ -68,7 +68,7 @@ Architecture:
       mysecret ──► /etc/secrets/username
                /etc/secrets/password
 
-Setup:
+## Setup:
 
     export CLUSTER_NAME=security-lab
     export AWS_REGION=us-east-1
@@ -89,7 +89,7 @@ Setup:
     aws eks --region us-east-1 update-kubeconfig --name security-lab
     kubectl get nodes
 
- Task 1 — Store Secret in AWS Secrets Manager:
+###  Task 1 — Store Secret in AWS Secrets Manager:
  
     aws secretsmanager create-secret \
       --name MyApp/DatabaseCredentials \
@@ -112,7 +112,7 @@ Setup:
     # Expected: arn:aws:secretsmanager:us-east-1:... 
     # If empty → re-run the command above
 
-Task 2 — AWS Secrets Manager → Pod via CSI Driver (Method 1):
+### Task 2 — AWS Secrets Manager → Pod via CSI Driver (Method 1):
 
     Step 2.1 — Enable OIDC Provider
     
@@ -123,7 +123,7 @@ Task 2 — AWS Secrets Manager → Pod via CSI Driver (Method 1):
     
     aws iam list-open-id-connect-providers
 
-Step 2.2 — Create IAM Policy:
+### Step 2.2 — Create IAM Policy:
 
     cat > secrets-policy.json << EOF
     {
@@ -145,7 +145,7 @@ Step 2.2 — Create IAM Policy:
       --policy-name EKSSecretsManagerPolicy \
       --policy-document file://secrets-policy.json
 
-Step 2.3 — Create IAM Service Account:
+### Step 2.3 — Create IAM Service Account:
 
     # eksctl creates IAM Role + ServiceAccount + OIDC link in one command
     eksctl create iamserviceaccount \
@@ -160,7 +160,7 @@ Step 2.3 — Create IAM Service Account:
     kubectl describe serviceaccount secrets-sa -n default | grep eks.amazonaws.com
     # eks.amazonaws.com/role-arn: arn:aws:iam::...
 
-Step 2.4 — Install Secrets Store CSI Driver:
+### Step 2.4 — Install Secrets Store CSI Driver:
 
     helm repo add secrets-store-csi-driver \
       https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
@@ -174,14 +174,14 @@ Step 2.4 — Install Secrets Store CSI Driver:
     kubectl get pods -n kube-system | grep secrets-store
     # secrets-store-csi-driver-*   Running 
 
-Step 2.5 — Install AWS Provider (ASCP):
+### Step 2.5 — Install AWS Provider (ASCP):
 
     kubectl apply -f https://raw.githubusercontent.com/aws/secrets-store-csi-driver-provider-aws/main/deployment/aws-provider-installer.yaml
     
     kubectl get pods -n kube-system | grep csi-secrets-store-provider
     # csi-secrets-store-provider-aws-*   Running 
 
-Step 2.6 — Apply SecretProviderClass:
+### Step 2.6 — Apply SecretProviderClass:
 
     kubectl apply -f k8s/secret-provider-class.yaml
     kubectl get secretproviderclass -n default
@@ -191,13 +191,13 @@ Step 2.6 — Apply SecretProviderClass:
     kubectl get secrets
     # No resources found — normal  (Secret is created when pod starts)
 
-Step 2.7 — Deploy Pod:
+### Step 2.7 — Deploy Pod:
 
     kubectl apply -f k8s/pod-aws-secret.yaml
     kubectl get pod pod-aws-secret -w
     # pod-aws-secret   1/1   Running 
 
-Step 2.8 — Verify:
+### Step 2.8 — Verify:
 
     kubectl exec -it pod-aws-secret -- /bin/sh
     
@@ -220,7 +220,7 @@ Step 2.8 — Verify:
       -o jsonpath='{.data.username}' | base64 --decode
     # secret-user 
 
-Task 3 — K8s Secret as Env Variable (Method 2):
+### Task 3 — K8s Secret as Env Variable (Method 2):
 
     kubectl apply -f k8s/mysecret.yaml
     kubectl get secrets
@@ -237,7 +237,7 @@ Task 3 — K8s Secret as Env Variable (Method 2):
     # secret-pass 
     exit
 
-Final Verification — All Three Methods:
+### Final Verification — All Three Methods:
 
     # All pods running?
     kubectl get pods
@@ -261,7 +261,7 @@ Final Verification — All Three Methods:
     kubectl exec mypod-vol -- cat /etc/secrets/username
     # secret-user 
 
-Cleanup:
+### Cleanup:
 
     # Delete pods and secrets
     kubectl delete pod pod-aws-secret mypod-env mypod-vol
@@ -295,7 +295,7 @@ Cleanup:
     eksctl delete cluster --name security-lab --region us-east-1
 
 
-License:
+### License:
 
     This project is licensed under the MIT License.
 
