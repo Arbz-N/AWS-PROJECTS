@@ -1,10 +1,10 @@
 # AWS IAM Custom Policies and Permissions:
 
 
-Overview
-This project demonstrates AWS Identity and Access Management (IAM) concepts through hands-on creation 
-and simulation of policies, roles, and permission boundaries. 
-It covers writing custom JSON policies, attaching them to a role, applying a permission boundary, and validating effective permissions using the IAM policy simulator.
+    Overview
+    This project demonstrates AWS Identity and Access Management (IAM) concepts through hands-on creation 
+    and simulation of policies, roles, and permission boundaries. 
+    It covers writing custom JSON policies, attaching them to a role, applying a permission boundary, and validating effective permissions using the IAM policy simulator.
 
     Policy JSON files
             |
@@ -28,7 +28,7 @@ It covers writing custom JSON policies, attaching them to a role, applying a per
             v
     Effective permissions validated
 
-Project Structure
+## Project Structure:
 
     AWS-IAM-Custom-Policies-and-Permissions/
     |
@@ -40,7 +40,7 @@ Project Structure
     |
     |-- README.md
 
-Prerequisites:
+## Prerequisites:
 
     Sudo apt update -y
     sudo apt install awscli -y
@@ -51,7 +51,7 @@ Prerequisites:
     
     aws sts get-caller-identity
 
-Task 1 — Validate Policy Files Locally
+### Task 1 — Validate Policy Files Locally:
 
     mkdir ~/iam-lab && cd ~/iam-lab
     # Copy all JSON files here
@@ -64,7 +64,7 @@ Task 1 — Validate Policy Files Locally
     # Valid JSON prints formatted output
     # Invalid JSON shows the line number of the error
 
-Task 2 — Simulate Policies Without Creating Them:
+### Task 2 — Simulate Policies Without Creating Them:
 
     Test a single action against Policy1.json before creating it
     aws iam simulate-custom-policy \
@@ -75,7 +75,7 @@ Task 2 — Simulate Policies Without Creating Them:
     # Expected:
     # "EvalDecision": "allowed"
 
-Task 3 — Create Role and Attach Policies
+### Task 3 — Create Role and Attach Policies:
 
     Create the Role
     aws iam create-role \
@@ -88,7 +88,7 @@ Task 3 — Create Role and Attach Policies
     
     echo "Role ARN: $ROLE_ARN"
 
-Create and Attach Policies
+### Create and Attach Policies:
 
     # S3 read policy
     POLICY1_ARN=$(aws iam create-policy \
@@ -109,7 +109,7 @@ Create and Attach Policies
     aws iam attach-role-policy \
       --role-name MyLabRole --policy-arn $POLICY2_ARN
 
-Apply Permission Boundary
+### Apply Permission Boundary:
 
     BOUNDARY_ARN=$(aws iam create-policy \
       --policy-name MyPermissionBoundary \
@@ -120,7 +120,7 @@ Apply Permission Boundary
       --role-name MyLabRole \
       --permissions-boundary $BOUNDARY_ARN
 
-Task 4 — Simulate Effective Permissions
+### Task 4 — Simulate Effective Permissions:
 
     # S3 ListBucket — should be allowed
     aws iam simulate-principal-policy \
@@ -146,7 +146,7 @@ Task 4 — Simulate Effective Permissions
       --action-names ec2:TerminateInstances \
       --resource-arns "*"
 
-Key Concepts
+### Key Concepts:
 
     How Permission Boundaries Work
     A permission boundary sets the maximum permissions a role can have. Even if an identity policy grants an action, the boundary must also allow it for the action to be permitted.
@@ -166,7 +166,7 @@ Key Concepts
     Condition Keys
     Policy3 uses aws:RequestedRegion to restrict DynamoDB access to us-east-1 only. Requests from any other region are implicitly denied even if the action would otherwise be allowed.
 
-Cleanup
+### Cleanup:
 
     Detach policies from role
     aws iam detach-role-policy \
@@ -189,6 +189,6 @@ Cleanup
     # Remove local files
     rm -rf ~/iam-lab
 
-License:
+### License:
 
     MIT License
