@@ -24,8 +24,22 @@
 
 
 Project Structure
-RDSLab/
-|
-|-- rds_backup_lambda.py    # Lambda function — creates RDS snapshot
-|
-|-- README.md
+
+    PostgreSQL-on-AWS-RDS-with-Automated-Backups-and-CloudWatch-Monitoring/
+    |
+    |-- rds_backup_lambda.py    # Lambda function — creates RDS snapshot
+    |
+    |-- README.md
+
+Prerequisites
+
+    # Verify AWS CLI
+    aws sts get-caller-identity
+    
+    export AWS_DEFAULT_REGION=us-east-1
+    ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    echo "Account ID: $ACCOUNT_ID"
+    
+    # Install PostgreSQL client
+    sudo apt install postgresql-client -y
+    # macOS: brew install libpq
