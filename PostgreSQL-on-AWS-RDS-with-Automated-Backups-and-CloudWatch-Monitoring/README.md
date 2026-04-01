@@ -112,6 +112,105 @@ Create EventBridge Schedule
 
     → Add
 
+Test Manually:
 
+    # Invoke without waiting for the schedule
+    aws lambda invoke \
+      --function-name RDSBackupFunction \
+      --payload '{}' \
+      response.json
+    
+    cat response.json
+    # {"statusCode": 200, "body": "Snapshot created: my-postgres-db-snapshot-2026-..."}
+    
+    # Verify snapshot was created
+    aws rds describe-db-snapshots \
+      --db-instance-identifier my-postgres-db \
+      --query 'DBSnapshots[*].{Snapshot:DBSnapshotIdentifier,Status:Status,Created:SnapshotCreateTime}' \
+      --output table
 
+Task 3 — Optimize PostgreSQL Parameters:
+
+    Create Parameter Group
+    RDS → Parameter groups → Create parameter group
+    
+      Parameter group family: postgres15
+      Group name:             lab-postgres-params
+      Description:            Custom params for lab
+    
+    → Create
+
+    Edit Parameters
+    Open lab-postgres-params → Edit parameters
+    
+      shared_buffers   = 131072   (131072 × 8KB = 1GB — 25% of RAM)
+      work_mem         = 16384    (16MB per sort operation)
+      max_connections  = 100
+
+    → Save changes
+    Apply to Database
+    RDS → my-postgres-db → Modify
+      Parameter group: lab-postgres-params
+      Apply:           Immediately
+    
+    → Modify DB instance
+
+Task 4 — CloudWatch Alarm for High CPU
+
+    Create SNS Topic
+    AWS Console → SNS → Create topic
+      Type: Standard
+      Name: rds-alerts
+    → Create
+    
+    Create subscription:
+      Protocol: Email
+      Endpoint: your@email.com
+    → Create subscription
+    
+    Check your email and confirm the subscription.
+
+    Create Alarm
+    CloudWatch → Alarms → Create alarm
+    → Select metric → RDS → Per-DB instance metrics
+    → my-postgres-db → CPUUtilization → Select metric
+    
+      Threshold type:  Static
+      Condition:       Greater than
+      Threshold:       90
+      Datapoints:      2 out of 2
+      Period:          5 minutes
+    
+    Notification:
+      In alarm state: send to rds-alerts SNS topic
+    
+    Alarm name: CPUUtilizationHigh
+    → Create alarm
+
+Task 5 — Verify Everything:
+
+    # RDS instance status
+    aws rds describe-db-instances \
+      --db-instance-identifier my-postgres-db \
+      --query 'DBInstances[0].{Status:DBInstanceStatus,Endpoint:Endpoint.Address,Engine:Engine,Version:EngineVersion,Class:DBInstanceClass}' \
+      --output table
+    
+    # List snapshots
+    aws rds describe-db-snapshots \
+      --db-instance-identifier my-postgres-db \
+      --output table
+    
+    # CloudWatch alarm state
+    aws cloudwatch describe-alarms \
+      --alarm-names CPUUtilizationHigh \
+      --query 'MetricAlarms[*].{Alarm:AlarmName,State:StateValue,Reason:StateReason}' \
+      --output table
+    
+    # Connect and check applied parameters
+    psql -h $RDS_ENDPOINT -U postgres -d labdb -c "
+    SELECT version();
+    SHOW shared_buffers;
+    SHOW work_mem;
+    SHOW max_connections;
+    "
 
