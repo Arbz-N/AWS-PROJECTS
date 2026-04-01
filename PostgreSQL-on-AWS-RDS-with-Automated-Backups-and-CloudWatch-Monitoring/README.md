@@ -23,7 +23,7 @@
     SNS Topic (rds-alerts) → Email notification
 
 
-Project Structure
+## Project Structure:
 
     PostgreSQL-on-AWS-RDS-with-Automated-Backups-and-CloudWatch-Monitoring/
     |
@@ -31,7 +31,7 @@ Project Structure
     |
     |-- README.md
 
-Prerequisites
+## Prerequisites:
 
     # Verify AWS CLI
     aws sts get-caller-identity
@@ -44,7 +44,7 @@ Prerequisites
     sudo apt install postgresql-client -y
 
 
-Task 1 — Create RDS PostgreSQL Instance:
+### Task 1 — Create RDS PostgreSQL Instance:
 
     AWS Console → RDS → Create database
     
@@ -84,7 +84,7 @@ Task 1 — Create RDS PostgreSQL Instance:
     labdb=> SELECT version();   -- confirm PostgreSQL version
     labdb=> \q                  -- quit
 
-Task 2 — Automated Backup with Lambda
+### Task 2 — Automated Backup with Lambda:
 
     Create Lambda Function
     AWS Console → Lambda → Create function
@@ -101,7 +101,7 @@ Task 2 — Automated Backup with Lambda
     IAM Console → Add permissions → Attach policies
     Search: AmazonRDSFullAccess → Attach
 
-Create EventBridge Schedule
+### Create EventBridge Schedule:
 
     Lambda → Add trigger
       Source:           EventBridge (CloudWatch Events)
@@ -112,7 +112,7 @@ Create EventBridge Schedule
 
     → Add
 
-Test Manually:
+    ### Test Manually:
 
     # Invoke without waiting for the schedule
     aws lambda invoke \
@@ -129,7 +129,7 @@ Test Manually:
       --query 'DBSnapshots[*].{Snapshot:DBSnapshotIdentifier,Status:Status,Created:SnapshotCreateTime}' \
       --output table
 
-Task 3 — Optimize PostgreSQL Parameters:
+### Task 3 — Optimize PostgreSQL Parameters:
 
     Create Parameter Group
     RDS → Parameter groups → Create parameter group
@@ -155,7 +155,7 @@ Task 3 — Optimize PostgreSQL Parameters:
     
     → Modify DB instance
 
-Task 4 — CloudWatch Alarm for High CPU
+### Task 4 — CloudWatch Alarm for High CPU:
 
     Create SNS Topic
     AWS Console → SNS → Create topic
@@ -187,7 +187,7 @@ Task 4 — CloudWatch Alarm for High CPU
     Alarm name: CPUUtilizationHigh
     → Create alarm
 
-Task 5 — Verify Everything:
+### Task 5 — Verify Everything:
 
     # RDS instance status
     aws rds describe-db-instances \
@@ -214,7 +214,7 @@ Task 5 — Verify Everything:
     SHOW max_connections;
     "
 
-Cleanup:
+### Cleanup:
 
     # Delete RDS instance (no final snapshot needed for lab)
     aws rds delete-db-instance \
@@ -240,6 +240,6 @@ Cleanup:
     # Delete security group (replace with your actual SG ID)
     aws ec2 delete-security-group --group-id sg-xxxxxxxxxxxxxxxxx
 
-License:
+### License:
 
     MIT License
