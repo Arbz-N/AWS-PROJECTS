@@ -214,3 +214,32 @@ Task 5 — Verify Everything:
     SHOW max_connections;
     "
 
+Cleanup:
+
+    # Delete RDS instance (no final snapshot needed for lab)
+    aws rds delete-db-instance \
+      --db-instance-identifier my-postgres-db \
+      --skip-final-snapshot
+    
+    aws rds wait db-instance-deleted \
+      --db-instance-identifier my-postgres-db
+    
+    # Delete Lambda
+    aws lambda delete-function --function-name RDSBackupFunction
+    
+    # Delete EventBridge rule
+    aws events remove-targets --rule RDSBackupRule --ids "1"
+    aws events delete-rule --name RDSBackupRule
+    
+    # Delete CloudWatch alarm
+    aws cloudwatch delete-alarms --alarm-names CPUUtilizationHigh
+    
+    # Delete SNS topic (replace with your actual ARN)
+    aws sns delete-topic --topic-arn arn:aws:sns:your-region:your-account-id:rds-alerts
+    
+    # Delete security group (replace with your actual SG ID)
+    aws ec2 delete-security-group --group-id sg-xxxxxxxxxxxxxxxxx
+
+License:
+
+    MIT License
