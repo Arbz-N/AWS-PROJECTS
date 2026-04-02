@@ -18,7 +18,7 @@
     Nginx installed, configured, and running on port 80
 
 
-Project Structure:
+# Project Structure:
 
     AnsibleLab/
     |
@@ -29,7 +29,7 @@ Project Structure:
     |
     |-- README.md
 
-Prerequisites:
+# Prerequisites:
 
     - AWS Account with admin access
     - EC2 instance(s) as targets (Amazon Linux 2 or Ubuntu)
@@ -37,7 +37,7 @@ Prerequisites:
     - AWS CLI configured: aws configure
     - Python 3.8+
 
-Task 1 — Set Up AWS Systems Manager:
+## Task 1 — Set Up AWS Systems Manager:
 
     Attach IAM Role to Target EC2 Instances
     IAM → Roles → Create role
