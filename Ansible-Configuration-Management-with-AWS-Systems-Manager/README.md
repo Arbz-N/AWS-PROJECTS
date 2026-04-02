@@ -37,7 +37,7 @@
     - AWS CLI configured: aws configure
     - Python 3.8+
 
-## Task 1 — Set Up AWS Systems Manager:
+### Task 1 — Set Up AWS Systems Manager:
 
     Attach IAM Role to Target EC2 Instances
     IAM → Roles → Create role
@@ -62,14 +62,14 @@
     sudo snap install amazon-ssm-agent --classic
     sudo snap start amazon-ssm-agent
 
-Task 2 — Install Ansible on the Control Node:
+### Task 2 — Install Ansible on the Control Node:
     
     # Ubuntu / Debian
     sudo apt update
     sudo apt install -y ansible python3-pip
     ansible --version
 
-Task 3 — Configure AWS Credentials:
+### Task 3 — Configure AWS Credentials:
 
     aws configure
     # Enter: Access Key, Secret Key, region, output format
@@ -81,7 +81,7 @@ Task 3 — Configure AWS Credentials:
     
     aws sts get-caller-identity
 
-Task 4 — Set Up the Lab Directory:
+### Task 4 — Set Up the Lab Directory:
 
     mkdir ~/ansible-lab && cd ~/ansible-lab
     # Copy all files from this project into ~/ansible-lab/
@@ -93,7 +93,7 @@ Task 4 — Set Up the Lab Directory:
     Verify the inventory discovers them:
     ansible-inventory --list
 
-Task 5 — Create IAM Role for Ansible Execution:
+### Task 5 — Create IAM Role for Ansible Execution:
 
     IAM → Roles → Create role
     
@@ -106,7 +106,7 @@ Task 5 — Create IAM Role for Ansible Execution:
     
     → Create role
 
-Task 6 — Run the Playbook:
+### Task 6 — Run the Playbook:
 
     From the Control Node directly
     cd ~/ansible-lab
@@ -125,7 +125,7 @@ Task 6 — Run the Playbook:
     
     → Run
 
-Task 7 — Verify:
+### Task 7 — Verify:
 
     SSM Session Manager
     Systems Manager → Session Manager → Start session
@@ -135,12 +135,12 @@ Task 7 — Verify:
     nginx -v
     curl localhost
 
-CloudWatch Logs:
+### CloudWatch Logs:
 
     CloudWatch → Log groups → /aws/ssm/AWS-RunShellScript
     → Open your command's log stream to see Ansible output
 
-Key Concepts:
+### Key Concepts:
 
     Idempotency
     Ansible tasks are idempotent — running the playbook multiple times produces the same result without unintended side effects.
@@ -152,17 +152,17 @@ Key Concepts:
     Config file unchanged       Skips the copy task and does not restart Nginx
     Config file changed         Copies the file and triggers the handler to restart Nginx
 
-Handlers:
+### Handlers:
 
     Handlers are tasks that run at the end of a play, and only if they were notified by another task. 
     In this playbook, the restart nginx handler runs only when the config file copy task actually makes a change — not on every run.
     
-SSM vs SSH:
+### SSM vs SSH:
 
     SSM does not require port 22 to be open. The SSM Agent on the target instance maintains an outbound HTTPS connection to SSM.
     Ansible sends commands through this channel, which is more secure and avoids the need to manage SSH keys.
 
-Cleanup:
+### Cleanup:
 
     # Delete SSM document if created
     aws ssm delete-document --name "RunAnsiblePlaybook"
@@ -188,6 +188,6 @@ Cleanup:
     # Remove local files
     rm -rf ~/ansible-lab/
 
-License:
+### License:
 
     MIT License
