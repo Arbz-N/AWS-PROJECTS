@@ -217,3 +217,12 @@ Key Concepts:
     Use case           S3, RDS, EBS, Secrets Manager   Digital signatures, external encryption
 
 
+Envelope Encryption:
+
+    AWS services like S3 and RDS do not pass your entire data through KMS. 
+    Instead they use envelope encryption:
+
+    KMS generates a unique data key (GenerateDataKey)
+    The data key encrypts your data locally
+    KMS encrypts the data key itself with your CMK
+    Only the encrypted data key is stored alongside your data
