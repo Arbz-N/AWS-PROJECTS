@@ -138,6 +138,55 @@ Task 3 — S3 Integration (SSE-KMS):
     aws s3 cp s3://$BUCKET_NAME/sensitive-data.txt downloaded.txt
     cat downloaded.txt
 
+Task 4 — RDS Integration (Storage Encryption):
+
+    aws rds create-db-instance \
+      --db-instance-identifier encrypted-rds-lab \
+      --db-instance-class db.t3.micro \
+      --engine mysql \
+      --master-username admin \
+      --master-user-password "your-strong-password" \
+      --allocated-storage 20 \
+      --storage-encrypted \
+      --kms-key-id alias/my-lab-cmk \
+      --region $AWS_REGION
+    # --storage-encrypted enables encryption at rest
+    # --kms-key-id specifies which CMK to use
+    
+    # Check encryption status
+    aws rds describe-db-instances \
+      --db-instance-identifier encrypted-rds-lab \
+      --query 'DBInstances[0].{Status:DBInstanceStatus,Encrypted:StorageEncrypted,KMSKey:KmsKeyId}' \
+      --output table
+
+Task 5 — Enable Automatic Key Rotation:
+    
+    # Enable annual automatic rotation
+    aws kms enable-key-rotation \
+      --key-id $KEY_ID \
+      --region $AWS_REGION
+    
+    # Verify
+    aws kms get-key-rotation-status \
+      --key-id $KEY_ID \
+      --region $AWS_REGION
+    # Expected: {"KeyRotationEnabled": true}
+
+    What happens on rotation: 
+    AWS generates a new backing key material and uses it for all new encryption operations. 
+    Existing ciphertext remains decryptable because KMS keeps all previous backing keys. 
+    No re-encryption of existing data is required.
+
+Task 6 — Key Policy Management:
+
+    View current key policy
+    aws kms get-key-policy \
+      --key-id alias/my-lab-cmk \
+      --policy-name default \
+      --region $AWS_REGION \
+      --query 'Policy' \
+      --output text | python3 -m json.tool
+
 
 
 
