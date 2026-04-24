@@ -48,5 +48,43 @@ Architecture:
       |-- RDS MySQL (storage-encrypted)
           All data at rest encrypted with CMK
 
+Task 1 — Create Customer Managed Key (CMK):
+
+    Console
+    AWS Console → KMS → Customer managed keys → Create key
+    
+    Step 1 — Key type:
+      Key type:   Symmetric
+      Key usage:  Encrypt and decrypt
+    
+    Step 2 — Labels:
+      Alias:       my-lab-cmk
+      Description: KMS Lab - Data Protection Key
+    
+    Step 3 — Key administrators:
+      Select your IAM user or role
+    
+    Step 4 — Key users:
+      Select your IAM user or role
+    
+    Step 5 — Review → Finish
+
+    Verify
+    
+    aws kms describe-key \
+      --key-id alias/my-lab-cmk \
+      --region $AWS_REGION \
+      --query 'KeyMetadata.{KeyId:KeyId,State:KeyState,Usage:KeyUsage,Created:CreationDate}' \
+      --output table
+    
+    # Save the Key ID for later tasks
+    KEY_ID=$(aws kms describe-key \
+      --key-id alias/my-lab-cmk \
+      --region $AWS_REGION \
+      --query 'KeyMetadata.KeyId' \
+      --output text)
+    echo "Key ID: $KEY_ID"
+
+
 
 
