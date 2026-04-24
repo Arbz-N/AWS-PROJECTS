@@ -206,6 +206,14 @@ Task 6 — Key Policy Management:
       --key-id alias/my-lab-cmk \
       --region $AWS_REGION
 
+Key Concepts:
 
+    Symmetric vs Asymmetric CMK:
+
+                        Symmetric                      Asymmetric
+
+    Key material       Single AES-256 key              Public/private key pair
+    Operations         Encrypt and decrypt             Encrypt with public, decrypt with private
+    Use case           S3, RDS, EBS, Secrets Manager   Digital signatures, external encryption
 
 
