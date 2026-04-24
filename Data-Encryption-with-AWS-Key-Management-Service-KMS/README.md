@@ -85,6 +85,59 @@ Task 1 — Create Customer Managed Key (CMK):
       --output text)
     echo "Key ID: $KEY_ID"
 
+Task 2 — Direct Encrypt and Decrypt Test:
+    
+    echo "Hello, this is secret data!" > plaintext.txt
+    
+    # Encrypt
+    aws kms encrypt \
+      --key-id alias/my-lab-cmk \
+      --plaintext fileb://plaintext.txt \
+      --region $AWS_REGION \
+      --query 'CiphertextBlob' \
+      --output text | base64 --decode > encrypted.bin
+    
+    ls -lh encrypted.bin
+    # Binary ciphertext file
+    
+    # Decrypt
+    aws kms decrypt \
+      --ciphertext-blob fileb://encrypted.bin \
+      --region $AWS_REGION \
+      --query 'Plaintext' \
+      --output text | base64 --decode
+    
+    # Expected: Hello, this is secret data!
+
+Task 3 — S3 Integration (SSE-KMS):
+
+    Enable default encryption on the bucket
+    AWS Console → S3 → your-bucket → Properties → Default encryption → Edit
+    
+      Encryption type: Server-side encryption with AWS KMS keys (SSE-KMS)
+      AWS KMS key:     Choose from your AWS KMS keys → my-lab-cmk
+    
+    → Save changes
+
+    Test upload and verify encryption
+
+    export BUCKET_NAME="your-bucket-name"
+    
+    echo "This is sensitive data - $(date)" > sensitive-data.txt
+    
+    aws s3 cp sensitive-data.txt s3://$BUCKET_NAME/
+    
+    # Verify object is encrypted with the CMK
+    aws s3api head-object \
+      --bucket $BUCKET_NAME \
+      --key sensitive-data.txt \
+      --query '{Encryption:ServerSideEncryption,KMSKey:SSEKMSKeyId}' \
+      --output table
+    
+    # Download and decrypt automatically
+    aws s3 cp s3://$BUCKET_NAME/sensitive-data.txt downloaded.txt
+    cat downloaded.txt
+
 
 
 
