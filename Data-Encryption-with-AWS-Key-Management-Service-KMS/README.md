@@ -23,5 +23,30 @@ Project Structure
     All operations in this lab are performed via AWS Console and CLI. 
     No application code files are required.
 
+Prerequisites:
+    
+    aws sts get-caller-identity
+    
+    export AWS_REGION="your-region"
+    export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    echo "Account: $AWS_ACCOUNT_ID | Region: $AWS_REGION"
+
+Architecture:
+
+    IAM User / Role
+            |
+            | kms:Encrypt, kms:Decrypt, kms:GenerateDataKey
+            v
+    CMK (alias/my-lab-cmk)
+      |
+      |-- Direct encrypt/decrypt (CLI test)
+      |
+      |-- S3 Bucket (SSE-KMS default encryption)
+      |   Upload → auto-encrypt with CMK
+      |   Download → auto-decrypt with CMK
+      |
+      |-- RDS MySQL (storage-encrypted)
+          All data at rest encrypted with CMK
+
 
 
