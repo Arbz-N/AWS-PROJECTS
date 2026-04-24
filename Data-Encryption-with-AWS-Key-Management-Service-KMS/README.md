@@ -186,6 +186,25 @@ Task 6 — Key Policy Management:
       --region $AWS_REGION \
       --query 'Policy' \
       --output text | python3 -m json.tool
+    
+    Test key disable behavior
+    
+    # Disable the key
+    aws kms disable-key \
+      --key-id alias/my-lab-cmk \
+      --region $AWS_REGION
+    
+    # Attempt to encrypt — should fail
+    aws kms encrypt \
+      --key-id alias/my-lab-cmk \
+      --plaintext "test" \
+      --region $AWS_REGION
+    # Expected error: KMSDisabledException
+    
+    # Re-enable the key
+    aws kms enable-key \
+      --key-id alias/my-lab-cmk \
+      --region $AWS_REGION
 
 
 
