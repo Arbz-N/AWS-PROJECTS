@@ -14,7 +14,7 @@
         Key disable/enable tested to observe KMSDisabledException
         Key scheduled for deletion with a 7-day pending window
     
-Project Structure
+Project Structure:
 
     Data-Encryption-with-AWS-Key-Management-Service-KMS/
     |
@@ -239,7 +239,7 @@ Envelope Encryption:
     This protects against accidental deletion of keys that are still in use by other services. 
     Keys can be cancelled during this window.
 
-Cleanup
+Cleanup:
 
     # S3
     aws s3 rm s3://$BUCKET_NAME --recursive
@@ -265,6 +265,6 @@ Cleanup
     # Local files
     rm -f plaintext.txt encrypted.bin sensitive-data.txt downloaded.txt
 
-License
+License:
 
     MIT License
