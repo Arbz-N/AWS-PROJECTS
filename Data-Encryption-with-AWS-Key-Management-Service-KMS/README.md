@@ -14,7 +14,7 @@
         Key disable/enable tested to observe KMSDisabledException
         Key scheduled for deletion with a 7-day pending window
     
-Project Structure:
+## Project Structure:
 
     Data-Encryption-with-AWS-Key-Management-Service-KMS/
     |
@@ -23,7 +23,7 @@ Project Structure:
     All operations in this lab are performed via AWS Console and CLI. 
     No application code files are required.
 
-Prerequisites:
+## Prerequisites:
     
     aws sts get-caller-identity
     
@@ -31,7 +31,7 @@ Prerequisites:
     export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     echo "Account: $AWS_ACCOUNT_ID | Region: $AWS_REGION"
 
-Architecture:
+## Architecture:
 
     IAM User / Role
             |
@@ -48,7 +48,7 @@ Architecture:
       |-- RDS MySQL (storage-encrypted)
           All data at rest encrypted with CMK
 
-Task 1 — Create Customer Managed Key (CMK):
+### Task 1 — Create Customer Managed Key (CMK):
 
     Console
     AWS Console → KMS → Customer managed keys → Create key
@@ -85,7 +85,7 @@ Task 1 — Create Customer Managed Key (CMK):
       --output text)
     echo "Key ID: $KEY_ID"
 
-Task 2 — Direct Encrypt and Decrypt Test:
+### Task 2 — Direct Encrypt and Decrypt Test:
     
     echo "Hello, this is secret data!" > plaintext.txt
     
@@ -109,7 +109,7 @@ Task 2 — Direct Encrypt and Decrypt Test:
     
     # Expected: Hello, this is secret data!
 
-Task 3 — S3 Integration (SSE-KMS):
+### Task 3 — S3 Integration (SSE-KMS):
 
     Enable default encryption on the bucket
     AWS Console → S3 → your-bucket → Properties → Default encryption → Edit
@@ -138,7 +138,7 @@ Task 3 — S3 Integration (SSE-KMS):
     aws s3 cp s3://$BUCKET_NAME/sensitive-data.txt downloaded.txt
     cat downloaded.txt
 
-Task 4 — RDS Integration (Storage Encryption):
+### Task 4 — RDS Integration (Storage Encryption):
 
     aws rds create-db-instance \
       --db-instance-identifier encrypted-rds-lab \
@@ -159,7 +159,7 @@ Task 4 — RDS Integration (Storage Encryption):
       --query 'DBInstances[0].{Status:DBInstanceStatus,Encrypted:StorageEncrypted,KMSKey:KmsKeyId}' \
       --output table
 
-Task 5 — Enable Automatic Key Rotation:
+### Task 5 — Enable Automatic Key Rotation:
     
     # Enable annual automatic rotation
     aws kms enable-key-rotation \
@@ -177,7 +177,7 @@ Task 5 — Enable Automatic Key Rotation:
     Existing ciphertext remains decryptable because KMS keeps all previous backing keys. 
     No re-encryption of existing data is required.
 
-Task 6 — Key Policy Management:
+### Task 6 — Key Policy Management:
 
     View current key policy
     aws kms get-key-policy \
@@ -206,7 +206,7 @@ Task 6 — Key Policy Management:
       --key-id alias/my-lab-cmk \
       --region $AWS_REGION
 
-Key Concepts:
+### Key Concepts:
 
     Symmetric vs Asymmetric CMK:
 
@@ -217,7 +217,7 @@ Key Concepts:
     Use case           S3, RDS, EBS, Secrets Manager   Digital signatures, external encryption
 
 
-Envelope Encryption:
+### Envelope Encryption:
 
     AWS services like S3 and RDS do not pass your entire data through KMS. 
     Instead they use envelope encryption:
@@ -239,7 +239,7 @@ Envelope Encryption:
     This protects against accidental deletion of keys that are still in use by other services. 
     Keys can be cancelled during this window.
 
-Cleanup:
+### Cleanup:
 
     # S3
     aws s3 rm s3://$BUCKET_NAME --recursive
@@ -265,6 +265,6 @@ Cleanup:
     # Local files
     rm -f plaintext.txt encrypted.bin sensitive-data.txt downloaded.txt
 
-License
+### License:
 
     MIT License
