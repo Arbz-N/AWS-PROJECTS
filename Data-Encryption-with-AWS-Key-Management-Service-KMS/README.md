@@ -265,6 +265,6 @@ Cleanup:
     # Local files
     rm -f plaintext.txt encrypted.bin sensitive-data.txt downloaded.txt
 
-License:
+License
 
     MIT License
