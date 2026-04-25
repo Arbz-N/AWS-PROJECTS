@@ -238,3 +238,29 @@ Envelope Encryption:
     KMS requires a 7–30 day waiting period before deleting a key. 
     This protects against accidental deletion of keys that are still in use by other services. 
     Keys can be cancelled during this window.
+
+Cleanup
+
+    # S3
+    aws s3 rm s3://$BUCKET_NAME --recursive
+    aws s3api delete-bucket --bucket $BUCKET_NAME --region $AWS_REGION
+    
+    # RDS
+    aws rds delete-db-instance \
+      --db-instance-identifier encrypted-rds-lab \
+      --skip-final-snapshot \
+      --region $AWS_REGION
+    
+    # KMS — delete alias first, then schedule key deletion
+    aws kms delete-alias \
+      --alias-name alias/my-lab-cmk \
+      --region $AWS_REGION
+    
+    aws kms schedule-key-deletion \
+      --key-id $KEY_ID \
+      --pending-window-in-days 7 \
+      --region $AWS_REGION
+    # Key is deleted after 7 days — cancel with cancel-key-deletion if needed
+    
+    # Local files
+    rm -f plaintext.txt encrypted.bin sensitive-data.txt downloaded.txt
