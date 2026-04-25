@@ -226,3 +226,15 @@ Envelope Encryption:
     The data key encrypts your data locally
     KMS encrypts the data key itself with your CMK
     Only the encrypted data key is stored alongside your data
+
+    This means KMS only ever sees small key-sized payloads, not your actual data.
+    
+    Key rotation
+    Rotating a CMK creates new backing key material for future encryptions. 
+    All previous backing keys are retained so existing ciphertext can still be decrypted. 
+    The key ID and alias do not change.
+    
+    Pending deletion window
+    KMS requires a 7–30 day waiting period before deleting a key. 
+    This protects against accidental deletion of keys that are still in use by other services. 
+    Keys can be cancelled during this window.
