@@ -106,3 +106,27 @@ Task 2 — Create Custom Patch Baseline:
       --output text)
     echo "Baseline ID: $BASELINE_ID"
 
+Task 3 — Create Maintenance Window:
+    
+    Console
+    Systems Manager → Maintenance Windows → Create maintenance window
+    
+      Name:        production-patch-window
+      Description: Weekly patching for production servers
+    
+      Schedule:
+        CRON/Rate expression: cron(0 2 ? * SUN *)
+        (Every Sunday at 2:00 AM UTC)
+    
+      Duration:           2 hours
+      Stop initiating:    1 hour (cutoff — no new tasks after 1 hour)
+      Allow unregistered: No
+    
+    → Create maintenance window
+
+    Save Window ID
+    bashWINDOW_ID=$(aws ssm describe-maintenance-windows \
+      --filters "Key=Name,Values=production-patch-window" \
+      --query 'WindowIdentities[0].WindowId' \
+      --output text)
+    echo "Window ID: $WINDOW_ID"
