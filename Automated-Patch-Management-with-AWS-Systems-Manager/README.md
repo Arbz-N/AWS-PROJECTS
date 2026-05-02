@@ -20,4 +20,32 @@ Project Structure:
     |
     |-- README.md
 
+    All operations are performed via AWS Console and CLI. No application code files are required.
+
+Architecture:
+    
+    EC2 Instances (Patch Group=production-servers)
+            |
+            | SSM Agent (online)
+            v
+    SSM Patch Manager
+      |
+      |-- Custom Patch Baseline (production-ubuntu-baseline)
+      |   |-- Rule 1: Critical security patches → auto-approve 7 days
+      |   |-- Rule 2: Important security patches → auto-approve 14 days
+      |   |-- Associated with: production-servers patch group
+      |
+      |-- Maintenance Window (production-patch-window)
+      |   |-- Schedule: cron(0 2 ? * SUN *)  — Sunday 2 AM UTC
+      |   |-- Target: tag Patch Group=production-servers
+      |   |-- Task: AWS-RunPatchBaseline (Install, RebootIfNeeded)
+      |   |-- Concurrency: 50%  Error threshold: 25%
+      |
+      |-- Compliance Reporting → Compliant / Non-Compliant
+      |
+      |-- CloudWatch Alarm → SNS Topic → Email alert
+      |
+      |-- SSM State Manager Association → weekly auto-remediation
+
+
 
