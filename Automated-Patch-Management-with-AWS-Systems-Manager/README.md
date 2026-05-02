@@ -183,3 +183,22 @@ Task 4 — Manual Patching Run (Test):
       --comment "Compliance scan — no install" \
       --region your-region
     # Operation=Scan checks for missing patches without installing anything
+
+Task 5 — Monitor Compliance:
+
+    Console
+    Patch Manager → Compliance reporting
+    
+    Shows per-instance status:
+      web-server-01  Compliant    Missing: 0
+      web-server-02  Compliant    Missing: 0
+
+    CLI
+    bashaws ssm describe-instance-patch-states \
+      --instance-ids \
+        $(aws ec2 describe-instances \
+          --filters "Name=tag:Patch Group,Values=production-servers" \
+          --query 'Reservations[].Instances[].InstanceId' \
+          --output text) \
+      --query 'InstancePatchStates[].[InstanceId,PatchGroup,InstalledCount,MissingCount,FailedCount,ComplianceWithDefaultPatch]' \
+      --output table
