@@ -130,3 +130,35 @@ Task 3 — Create Maintenance Window:
       --query 'WindowIdentities[0].WindowId' \
       --output text)
     echo "Window ID: $WINDOW_ID"
+
+    Register Targets (Console)
+
+    production-patch-window → Targets → Register target
+    
+      Target name:  production-servers-target
+      Description:  Production patch group instances
+    
+      Targets:
+        Specify instance tags
+        Tag key:   Patch Group
+        Tag value: production-servers
+        → Add
+
+    → Register target
+
+    Register Patching Task (Console)
+    
+    production-patch-window → Tasks → Register tasks → Register Run Command task
+    
+      Name:               weekly-patch-task
+      Command document:   AWS-RunPatchBaseline
+      Targets:            production-servers-target
+      Concurrency:        50 percent
+      Error threshold:    25 percent
+      IAM service role:   AWSSystemsManagerDefaultEC2InstanceManagementRole
+      Parameters:
+        Operation:    Install
+        RebootOption: RebootIfNeeded
+      Priority:       1
+    
+    → Register Run Command task
