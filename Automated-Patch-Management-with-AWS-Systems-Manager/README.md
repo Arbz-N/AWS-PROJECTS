@@ -162,3 +162,24 @@ Task 3 — Create Maintenance Window:
       Priority:       1
     
     → Register Run Command task
+
+Task 4 — Manual Patching Run (Test):
+    
+    Patch now (Console)
+    Patch Manager → Patch now
+    
+      Patching operation: Install
+      Instances to patch: Patch groups
+      Patch group:        production-servers
+      Reboot option:      Reboot if needed
+
+    → Patch now
+
+    Scan only (CLI)
+    bashaws ssm send-command \
+      --document-name "AWS-RunPatchBaseline" \
+      --targets "Key=tag:Patch Group,Values=production-servers" \
+      --parameters 'Operation=Scan' \
+      --comment "Compliance scan — no install" \
+      --region your-region
+    # Operation=Scan checks for missing patches without installing anything
