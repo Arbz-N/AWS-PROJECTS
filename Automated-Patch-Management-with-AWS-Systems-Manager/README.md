@@ -47,5 +47,62 @@ Architecture:
       |
       |-- SSM State Manager Association → weekly auto-remediation
 
+Task 1 — Tag Instances with Patch Group:
+    
+    # List running instances
+    aws ec2 describe-instances \
+      --filters "Name=instance-state-name,Values=running" \
+      --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0]]' \
+      --output table
+    
+    # Apply Patch Group tag to web-server-01
+    aws ec2 create-tags \
+      --resources i-0XXXXXXXXXXXXXXXXX \
+      --tags Key="Patch Group",Value="production-servers"
+    # "Patch Group" must have a space — SSM looks for this exact key name
+    
+    # Apply Patch Group tag to web-server-02
+    aws ec2 create-tags \
+      --resources i-0XXXXXXXXXXXXXXXXX \
+      --tags Key="Patch Group",Value="production-servers"
+    
+    # Verify both instances are tagged
+    aws ec2 describe-instances \
+      --filters "Name=tag:Patch Group,Values=production-servers" \
+      --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0]]' \
+      --output table
 
+Task 2 — Create Custom Patch Baseline:
+
+    Console
+    Systems Manager → Patch Manager → Patch Baselines → Create patch baseline
+    
+      Basic Settings:
+        Name:        production-ubuntu-baseline
+        Description: Ubuntu production servers patch rules
+        OS:          Ubuntu
+    
+      Approval Rules:
+    
+        Rule 1 — Critical patches:
+          Products:         Ubuntu20.04, Ubuntu22.04
+          Classification:   Security
+          Severity:         Critical
+          Auto-approval:    7 days
+          Compliance level: Critical
+    
+        Rule 2 — Important patches:
+          Products:         Ubuntu20.04, Ubuntu22.04
+          Classification:   Security
+          Severity:         Important
+          Auto-approval:    14 days
+          Compliance level: High
+    
+      → Create patch baseline
+    Save the Baseline ID
+    bashBASELINE_ID=$(aws ssm describe-patch-baselines \
+      --filters "Key=NAME_PREFIX,Values=production-ubuntu-baseline" \
+      --query 'BaselineIdentities[0].BaselineId' \
+      --output text)
+    echo "Baseline ID: $BASELINE_ID"
 
