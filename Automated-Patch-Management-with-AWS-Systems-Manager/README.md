@@ -163,7 +163,7 @@
     
     → Register Run Command task
 
-Task 4 — Manual Patching Run (Test):
+### Task 4 — Manual Patching Run (Test):
     
     Patch now (Console)
     Patch Manager → Patch now
@@ -184,7 +184,7 @@ Task 4 — Manual Patching Run (Test):
       --region your-region
     # Operation=Scan checks for missing patches without installing anything
 
-Task 5 — Monitor Compliance:
+### Task 5 — Monitor Compliance:
 
     Console
     Patch Manager → Compliance reporting
@@ -218,7 +218,7 @@ Task 5 — Monitor Compliance:
       --evaluation-periods 1 \
       --alarm-actions $SNS_ARN
 
-Task 6 — Remediate Non-Compliant Instances:
+### Task 6 — Remediate Non-Compliant Instances:
 
     Manual remediation
 
@@ -250,7 +250,7 @@ Task 6 — Remediate Non-Compliant Instances:
       --association-filter-list "key=Name,value=weekly-patch-association" \
       --output table
 
-Task 7 — Patch Report:
+### Task 7 — Patch Report:
 
     # Full patch state per instance
     aws ssm describe-instance-patch-states \
@@ -268,7 +268,7 @@ Task 7 — Patch Report:
       --query 'Patches[].[Title,Severity,Classification]' \
       --output table
 
-Key Concepts:
+### Key Concepts:
 
     Patch Group tag
     The tag key must be exactly Patch Group with a space. 
@@ -288,7 +288,7 @@ Key Concepts:
     Operation=Scan checks for missing patches and updates compliance status without changing anything. 
     Use this to assess the current state before scheduling an install window.
 
-Cleanup:
+### Cleanup:
 
     bash# Delete State Manager association
     ASSOC_ID=$(aws ssm list-associations \
@@ -317,6 +317,6 @@ Cleanup:
     # Terminate instances via EC2 console
     # EC2 → Instances → web-server-01, web-server-02 → Terminate
 
-License:
+### License:
 
     MIT License
