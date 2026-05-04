@@ -317,3 +317,6 @@ Cleanup:
     # Terminate instances via EC2 console
     # EC2 → Instances → web-server-01, web-server-02 → Terminate
 
+License:
+
+    MIT License
