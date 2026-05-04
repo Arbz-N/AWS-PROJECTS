@@ -202,3 +202,4 @@ Task 5 — Monitor Compliance:
           --output text) \
       --query 'InstancePatchStates[].[InstanceId,PatchGroup,InstalledCount,MissingCount,FailedCount,ComplianceWithDefaultPatch]' \
       --output table
+
