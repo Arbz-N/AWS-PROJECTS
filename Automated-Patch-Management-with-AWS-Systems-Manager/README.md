@@ -195,3 +195,26 @@ Task 5 — Monitor Compliance:
 
     CloudWatch Alarm for Non-Compliance
 
+    SNS_ARN=$(aws sns create-topic \
+      --name "patch-compliance-alerts" \
+      --query 'TopicArn' \
+      --output text)
+    
+    aws sns subscribe \
+      --topic-arn $SNS_ARN \
+      --protocol email \
+      --notification-endpoint "your-email@example.com"
+    # Confirm the subscription from your email inbox
+    
+    aws cloudwatch put-metric-alarm \
+      --alarm-name "patch-non-compliance-alarm" \
+      --alarm-description "One or more instances are non-compliant" \
+      --namespace "AWS/SSM-PatchManager" \
+      --metric-name "NonCompliantInstanceCount" \
+      --statistic Sum \
+      --period 3600 \
+      --threshold 1 \
+      --comparison-operator GreaterThanOrEqualToThreshold \
+      --evaluation-periods 1 \
+      --alarm-actions $SNS_ARN
+
