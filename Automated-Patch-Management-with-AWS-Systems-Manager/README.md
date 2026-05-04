@@ -193,13 +193,5 @@ Task 5 — Monitor Compliance:
       web-server-01  Compliant    Missing: 0
       web-server-02  Compliant    Missing: 0
 
-    CLI
-    bashaws ssm describe-instance-patch-states \
-      --instance-ids \
-        $(aws ec2 describe-instances \
-          --filters "Name=tag:Patch Group,Values=production-servers" \
-          --query 'Reservations[].Instances[].InstanceId' \
-          --output text) \
-      --query 'InstancePatchStates[].[InstanceId,PatchGroup,InstalledCount,MissingCount,FailedCount,ComplianceWithDefaultPatch]' \
-      --output table
+    CloudWatch Alarm for Non-Compliance
 
