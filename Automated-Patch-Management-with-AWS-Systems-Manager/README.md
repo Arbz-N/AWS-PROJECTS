@@ -1,4 +1,4 @@
- Automated Patch Management with AWS Systems Manager
+#  Automated Patch Management with AWS Systems Manager:
 
 
     Overview
@@ -14,7 +14,7 @@
         CloudWatch alarm triggers SNS email when any instance is non-compliant
         SSM State Manager association provides weekly auto-remediation
 
-Project Structure:
+## Project Structure:
 
     Automated-Patch-Management-with-AWS-Systems-Manager/
     |
@@ -22,7 +22,7 @@ Project Structure:
 
     All operations are performed via AWS Console and CLI. No application code files are required.
 
-Architecture:
+## Architecture:
     
     EC2 Instances (Patch Group=production-servers)
             |
@@ -47,7 +47,7 @@ Architecture:
       |
       |-- SSM State Manager Association → weekly auto-remediation
 
-Task 1 — Tag Instances with Patch Group:
+### Task 1 — Tag Instances with Patch Group:
     
     # List running instances
     aws ec2 describe-instances \
@@ -72,7 +72,7 @@ Task 1 — Tag Instances with Patch Group:
       --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0]]' \
       --output table
 
-Task 2 — Create Custom Patch Baseline:
+### Task 2 — Create Custom Patch Baseline:
 
     Console
     Systems Manager → Patch Manager → Patch Baselines → Create patch baseline
@@ -106,7 +106,7 @@ Task 2 — Create Custom Patch Baseline:
       --output text)
     echo "Baseline ID: $BASELINE_ID"
 
-Task 3 — Create Maintenance Window:
+### Task 3 — Create Maintenance Window:
     
     Console
     Systems Manager → Maintenance Windows → Create maintenance window
